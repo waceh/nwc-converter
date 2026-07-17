@@ -26,8 +26,8 @@ python3 -m http.server 8765
 
 | 입력 | 출력 |
 |------|------|
-| NWC binary (v1.5 ~ v2.0) | MusicXML 4.0 |
-| NWC v2.75 (NWCTXT 내장) | MIDI (Format 1) |
+| NWC binary (v1.5 ~ v2.0) | MusicXML 4.0 (가사 포함) |
+| NWC v2.75 (NWCTXT 내장) | MIDI (Format 1, 가사 미지원) |
 
 ## 기술 스택
 
