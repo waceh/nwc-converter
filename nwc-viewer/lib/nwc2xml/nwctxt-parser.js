@@ -10,6 +10,29 @@ function fieldValue(f) {
   return idx === -1 ? '' : f.substring(idx + 1);
 }
 
+// Parse NWC lyric text into a flat syllable array for the MusicXML writer.
+// NWC format: "word1 syl-la-ble _ next-word"
+//   - spaces separate tokens
+//   - hyphens split syllables within a word; continuation syllables get "-" prefix
+//   - "_" = melisma (extend previous syllable; writer will skip this slot)
+//   - "\n" (literal backslash-n) = phrase separator, treated as space
+function parseLyricText(raw) {
+  const text = raw
+    .replace(/^"|"$/g, '')   // strip surrounding quotes
+    .replace(/\\n/g, ' ')    // literal \n → space
+    .replace(/\n/g, ' ');    // real newline → space
+
+  const syllables = [];
+  for (const token of text.trim().split(/\s+/)) {
+    if (!token) continue;
+    if (token === '_') { syllables.push('_'); continue; }
+    const parts = token.split('-');
+    syllables.push(parts[0]);
+    for (let i = 1; i < parts.length; i++) syllables.push('-' + parts[i]);
+  }
+  return syllables;
+}
+
 class NWCTxtObj {
   constructor(type, staff) { this.type = type; this.staff = staff; this.children = []; }
 }
@@ -402,6 +425,13 @@ export function parseNWCTxt(text) {
         for (const f of fields) {
           if (f.startsWith('Patch:')) staff.patchName = parseInt(fieldValue(f)) || 0;
           if (f.startsWith('Trans:')) staff.transposition = parseInt(fieldValue(f)) || 0;
+        }
+      } else if (/^Lyric\d+$/.test(type) && staff) {
+        const verseIdx = parseInt(type.replace('Lyric', '')) - 1;
+        for (const f of fields) {
+          if (f.startsWith('Text:')) {
+            staff.lyrics[verseIdx] = parseLyricText(fieldValue(f));
+          }
         }
       } else if (staff) {
         let obj = null;

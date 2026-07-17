@@ -371,6 +371,7 @@ function writeNote(w, obj, div, clefShift, measureAlter, lyrics, lyricIdx, isCho
     lyrics.forEach((lyric, li) => {
       if (lyricIdx < lyric.length) {
         let text = lyric[lyricIdx].trim();
+        if (text === '_' || text === '') return; // melisma / empty slot
         const next = lyric[lyricIdx + 1]?.trim() || '';
         let syllabic;
         if (text.startsWith('-')) {
