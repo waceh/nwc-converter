@@ -225,18 +225,6 @@
 				display: flex;
 			}
 
-			/* Rows can hold many controls (esp. the ink group) — wrap instead
-			   of letting flex-shrink squish button/select text vertically. */
-			#advanced_panel .toolbar-group {
-				flex-wrap: wrap;
-				row-gap: 6px;
-			}
-
-			#advanced_panel .toolbar-group > button,
-			#advanced_panel .toolbar-group > select {
-				flex: 0 0 auto;
-			}
-
 			#advanced_panel label {
 				display: flex;
 				align-items: center;
@@ -360,7 +348,7 @@
 							<button data-mode="wrap" class="active">줄바꿈</button>
 							<button data-mode="page">페이지</button>
 						</div>
-						<button id="parser_toggle" title="악보 파싱 방식: 멜로디 / 원본">멜로디</button>
+						<button id="parser_toggle" title="NWC 파일을 읽는 파서 전환: 새 파서(변환기와 같은 엔진) / 기존 파서(뷰어 초기 파서)">새 파서</button>
 						<div class="btn-group" id="orientation_group" style="display: none;">
 							<button data-orient="portrait" class="active">세로</button>
 							<button data-orient="landscape">가로</button>

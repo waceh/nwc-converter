@@ -456,12 +456,18 @@ export class PlaybackController {
 	 * will actually produce sound on iOS Safari; a fresh one created later
 	 * would start suspended with no gesture left to resume it.
 	 */
-	_createEngine(audioContext) {
+	_createEngine(audioContext = null) {
 		const vendorPath = new URL(
 			'../vendor/soundfont-engine/vendor',
 			import.meta.url
 		).href
 		return new SoundFontEngine({ backend: 'oxisynth', vendorPath, audioContext })
+	}
+
+	/** Create the engine if needed (reused by unlockAudio() and _ensureInit()). */
+	_ensureEngine(audioContext) {
+		if (!this._engine) this._engine = this._createEngine(audioContext)
+		return this._engine
 	}
 
 	/**
@@ -476,7 +482,7 @@ export class PlaybackController {
 	unlockAudio() {
 		if (!this._engine) {
 			const AudioContextClass = globalThis.AudioContext || globalThis.webkitAudioContext
-			this._engine = this._createEngine(new AudioContextClass())
+			this._ensureEngine(new AudioContextClass())
 		}
 		this._engine.resume().catch(() => {})
 	}
@@ -487,9 +493,7 @@ export class PlaybackController {
 		// Normally already created by unlockAudio() at the top of the click
 		// handler; fall back here just in case load()/play() get called
 		// without going through that path first.
-		if (!this._engine) {
-			this._engine = this._createEngine(null)
-		}
+		this._ensureEngine()
 
 		this._scheduler = new MidiScheduler(this._engine, {
 			workletPath: new URL(

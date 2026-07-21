@@ -13,7 +13,7 @@ function fieldValue(f) {
 // NWCTXT backslash-escapes quote and backslash characters inside quoted
 // string fields (e.g. Title:"Dad\'s Harmony" for a literal apostrophe) —
 // unescape after stripping the surrounding quotes.
-function unescapeNwcString(s) {
+export function unescapeNwcString(s) {
   return s.replace(/\\(.)/g, '$1');
 }
 

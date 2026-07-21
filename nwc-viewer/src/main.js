@@ -708,7 +708,7 @@ const PARSER_STORAGE_KEY = 'nwc_use_new_parser'
 
 function updateParserButton() {
 	const btn = document.getElementById('parser_toggle')
-	if (btn) btn.textContent = getUseNewParser() ? '멜로디' : '원본'
+	if (btn) btn.textContent = getUseNewParser() ? '새 파서' : '기존 파서'
 }
 
 function toggleParser() {
@@ -724,8 +724,8 @@ function toggleParser() {
 const parserBtn = document.getElementById('parser_toggle')
 if (parserBtn) parserBtn.onclick = toggleParser
 
-// Restore persisted parser preference — defaults to 원본 (the legacy
-// src/nwc.js parser) unless the user has explicitly switched to 멜로디
+// Restore persisted parser preference — defaults to 기존 파서 (the legacy
+// src/nwc.js parser) unless the user has explicitly switched to 새 파서
 // before.
 const storedParser = localStorage.getItem(PARSER_STORAGE_KEY)
 if (storedParser !== null) {

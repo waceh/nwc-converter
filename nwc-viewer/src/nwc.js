@@ -2,17 +2,19 @@ import './constants.js'
 import { NwcConstants, FontStyles } from './nwc_constants.js'
 import { TokenParsers } from './nwc_parser.js'
 import { parseNWC } from '../lib/nwc-parser.js'
+import { unescapeNwcString } from '../lib/nwc2xml/nwctxt-parser.js'
+import { sharps, flats } from './interpreter.js'
 
 var should_debug = false
 
-// Toggle to use new parser (lib/nwc2xml, the "멜로디" mode — shares the
-// bug fixes made for the converter, e.g. lyric/title escaping and
-// multi-staff rendering). "원본" (false) is the legacy src/nwc.js parser,
-// kept for comparison. It used to mis-render key signatures (KeySignature
-// was keyed off the Tonic field instead of the Signature accidental list,
-// e.g. rendering a 2-flat key as 5 sharps) and drop Lyric1/Lyric2 verse
-// text entirely — both fixed. Defaults to 원본. Can be toggled at runtime
-// via setUseNewParser()
+// Toggle to use new parser (lib/nwc2xml, the "새 파서" mode in the UI —
+// shares the bug fixes made for the converter, e.g. lyric/title escaping
+// and multi-staff rendering). "기존 파서" (false) is the legacy src/nwc.js
+// parser, kept for comparison. It used to mis-render key signatures
+// (KeySignature was keyed off the Tonic field instead of the Signature
+// accidental list, e.g. rendering a 2-flat key as 5 sharps) and drop
+// Lyric1/Lyric2 verse text entirely — both fixed. Defaults to 기존 파서.
+// Can be toggled at runtime via setUseNewParser()
 let USE_NEW_PARSER = false;
 
 export function getUseNewParser() {
@@ -559,6 +561,17 @@ function convert275Tokens(reader) {
 	var data = reader.data
 
 	data.score.staves.forEach((stave) => {
+		// Lyric1, Lyric2, … carry verse text, not a playable/visual token —
+		// pull each into stave.lyrics (indexed by verse number) instead of
+		// letting it flow into mapTokens(), which doesn't know what to do
+		// with a "Lyric1"-typed token.
+		stave.tokens = stave.tokens.filter((token) => {
+			var lyricMatch = /^Lyric(\d+)$/.exec(token.type)
+			if (!lyricMatch) return true
+			if (!Array.isArray(stave.lyrics)) stave.lyrics = []
+			stave.lyrics[+lyricMatch[1] - 1] = unquoteNwcString(token.Text)
+			return false
+		})
 		stave.tokens = stave.tokens.map(mapTokens)
 	})
 }
@@ -602,10 +615,11 @@ function getChordPos(str) {
 	return positions
 }
 
-// Major-key label per accidental count (0..7), matching the `sharps`/`flats`
-// lookup tables in interpreter.js's SightReader.KeySignature.
-var FLAT_KEY_BY_COUNT = ['C', 'F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'Cb']
-var SHARP_KEY_BY_COUNT = ['C', 'G', 'D', 'A', 'E', 'B', 'F#', 'C#']
+// Major-key label per accidental count (0..7) — derived from interpreter.js's
+// own `sharps`/`flats` lookup tables (their key order already runs C, then
+// one more accidental per step) so the two stay in sync automatically.
+var SHARP_KEY_BY_COUNT = Object.keys(sharps)
+var FLAT_KEY_BY_COUNT = Object.keys(flats)
 
 // A NWCTXT Key object's Signature field (e.g. "Bb,Eb") lists the accidentals
 // in the signature — its '#'/'b' counts are what actually determine how many
@@ -1246,25 +1260,12 @@ var TokenMode = {
 			return
 		}
 		if (key === 'type') {
-			var lyricVerseMatch = /^Lyric(\d+)$/.exec(value)
-			if (lyricVerseMatch) {
-				// Lyric1, Lyric2, … — actual verse text (as opposed to the
-				// "Lyrics" section that just holds placement/alignment
-				// settings, handled below). Route the Text field into the
-				// owning staff's `.lyrics` array instead of letting
-				// reader.enter() tack it onto the tokens array as a stray
-				// non-index property, where convert275Tokens()'s
-				// tokens.map() would silently drop it.
-				var stavePath = reader.descendPath.slice(0, -1) // drop trailing 'tokens'
-				var stave = reader.data
-				stavePath.forEach((p) => { stave = stave[p] })
-				if (!Array.isArray(stave.lyrics)) stave.lyrics = []
-				pendingLyricVerse = { stave, index: +lyricVerseMatch[1] - 1 }
-				tokenMode = TokenMode.LyricText
-				return
-			}
-			if (/Lyric/.exec(value)) {
-				// Lyrics (placement/alignment settings, not text)
+			if (value === 'Lyrics') {
+				// Lyrics settings section (Placement/Align/Offset) — not verse
+				// text, parsed but currently unused downstream. Lyric1/Lyric2/…
+				// (the actual verse text) fall through to the default case
+				// below like any other token type, so convert275Tokens() can
+				// pull their Text field into staff.lyrics afterward.
 				reader.enter(value)
 				tokenMode = TokenMode.EnterExit
 				return
@@ -1309,34 +1310,20 @@ var TokenMode = {
 
 		reader.set(key, value)
 	},
-
-	LyricText: (reader, key, value) => {
-		if (key === 'next') {
-			pendingLyricVerse = null
-			tokenMode = TokenMode.JustSet
-			return
-		}
-		if (key === 'Text' && pendingLyricVerse) {
-			pendingLyricVerse.stave.lyrics[pendingLyricVerse.index] = unquoteNwcString(value)
-		}
-	},
 }
 
 // Strip the surrounding double quotes NWCTXT wraps string fields in and
-// undo its backslash escaping (\n/\r/\t -> control char, \' \" \\ -> literal).
+// undo its backslash escaping, reusing the same convention as
+// lib/nwc2xml/nwctxt-parser.js's parseLyricText(): an embedded "\n" is a
+// phrase break, normalized to a space (a word-boundary) before the generic
+// \X -> X unescape, otherwise it would survive as a literal "n".
 function unquoteNwcString(value) {
 	if (typeof value !== 'string') return value
-	var inner = value.replace(/^"|"$/g, '')
-	return inner.replace(/\\(.)/g, (_, ch) => {
-		if (ch === 'n') return '\n'
-		if (ch === 'r') return '\r'
-		if (ch === 't') return '\t'
-		return ch
-	})
+	var inner = value.replace(/^"|"$/g, '').replace(/\\n/g, ' ')
+	return unescapeNwcString(inner)
 }
 
 var tokenMode = TokenMode.JustSet
-var pendingLyricVerse = null
 
 // aka "emits"
 DataReader.prototype.token = function (key, value) {

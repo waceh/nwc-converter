@@ -556,4 +556,4 @@ if (typeof window !== 'undefined') {
 	window.interpret = interpret
 }
 
-export { interpret }
+export { interpret, sharps, flats }
