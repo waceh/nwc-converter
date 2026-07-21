@@ -202,6 +202,17 @@
       font-size: 0.78rem;
       color: #444;
     }
+
+    @media (max-width: 480px) {
+      body { padding: 1.2rem; }
+      h1 { font-size: 1.35rem; }
+      .subtitle { margin-bottom: 1.8rem; }
+      .drop-zone { padding: 2.2rem 1.2rem; }
+      .result, .error { padding: 1rem 1.1rem; }
+      .btn-row { flex-direction: column; }
+      .btn-download { font-size: 0.85rem; padding: 0.75rem; }
+      footer { margin-top: 2rem; text-align: center; }
+    }
   </style>
 </head>
 <body>
@@ -214,7 +225,7 @@
     <p><strong>.nwc 파일을 여기에 드롭하세요</strong></p>
     <p>또는</p>
     <label class="btn-select" for="file-input">파일 선택</label>
-    <input type="file" id="file-input" accept=".nwc">
+    <input type="file" id="file-input" accept=".nwc,application/octet-stream,text/plain">
   </div>
 
   <div class="loading" id="loading">
