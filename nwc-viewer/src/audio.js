@@ -446,19 +446,50 @@ export class PlaybackController {
 		this._scheduler?.setSpeed(this._speed)
 	}
 
-	async _ensureInit() {
-		if (this._initialized) return
-
+	/**
+	 * Build the engine around a single, explicitly-owned AudioContext. Passing
+	 * `audioContext` in means every backend the engine ever switches to
+	 * (oxisynth → wavetable on soundfont-load failure, see _loadSoundfont())
+	 * reuses this same context instead of each lazily creating its own — see
+	 * BaseBackend.audioContext in vendor/soundfont-engine. That matters
+	 * because only the context resumed inside unlockAudio()'s gesture window
+	 * will actually produce sound on iOS Safari; a fresh one created later
+	 * would start suspended with no gesture left to resume it.
+	 */
+	_createEngine(audioContext) {
 		const vendorPath = new URL(
 			'../vendor/soundfont-engine/vendor',
 			import.meta.url
 		).href
+		return new SoundFontEngine({ backend: 'oxisynth', vendorPath, audioContext })
+	}
 
-		// Start with oxisynth for full GM instrument support
-		this._engine = new SoundFontEngine({
-			backend: 'oxisynth',
-			vendorPath,
-		})
+	/**
+	 * Fire off AudioContext.resume() synchronously. Must be called directly
+	 * from a user-gesture handler, before any `await` — iOS Safari only
+	 * honors resume() when it's issued in the same task as the triggering
+	 * tap. _ensureInit()/play() also call resume(), but by then
+	 * AudioWorklet/soundfont fetches have already crossed a task boundary
+	 * and iOS has revoked the gesture, so playback would silently stay
+	 * muted without this.
+	 */
+	unlockAudio() {
+		if (!this._engine) {
+			const AudioContextClass = globalThis.AudioContext || globalThis.webkitAudioContext
+			this._engine = this._createEngine(new AudioContextClass())
+		}
+		this._engine.resume().catch(() => {})
+	}
+
+	async _ensureInit() {
+		if (this._initialized) return
+
+		// Normally already created by unlockAudio() at the top of the click
+		// handler; fall back here just in case load()/play() get called
+		// without going through that path first.
+		if (!this._engine) {
+			this._engine = this._createEngine(null)
+		}
 
 		this._scheduler = new MidiScheduler(this._engine, {
 			workletPath: new URL(

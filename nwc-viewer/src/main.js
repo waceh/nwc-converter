@@ -397,7 +397,12 @@ async function togglePlayPause() {
 	}
 }
 
-playBtn.onclick = togglePlayPause
+playBtn.onclick = () => {
+	// Must run synchronously, before any await, so iOS Safari still
+	// considers this part of the tap gesture (see unlockAudio() in audio.js).
+	if (!playback.playing) playback.unlockAudio()
+	togglePlayPause()
+}
 
 stopBtn.onclick = () => {
 	playback.stop()
