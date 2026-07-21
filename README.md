@@ -42,7 +42,7 @@ python3 -m http.server 8765
 
 ## 기술 스택
 
-- **NWC 파싱 / 렌더링 / MusicXML 변환**: [nwc-viewer](https://github.com/zz85/nwc-viewer) (GPL-2.0) 기반, 다수의 렌더링·재생 버그 수정 및 기능 추가
+- **NWC 파싱 / 렌더링 / MusicXML 변환**: (GPL-2.0) 기반, 다수의 렌더링·재생 버그 수정 및 기능 추가
   - 레거시 NWC 파서의 가사 유실·싱크 어긋남, 조표(key signature) 오표기 버그 수정
   - `nwctxt-parser.js`의 key signature 버그 수정 (sharpOrder/flatOrder 배열 오류)
   - iOS Safari에서 재생 시 무음이 되던 AudioContext 제스처 문제 수정
@@ -55,4 +55,4 @@ python3 -m http.server 8765
 
 ## License
 
-이 프로젝트는 [nwc-viewer](https://github.com/zz85/nwc-viewer) (GPL-2.0)를 포함하므로 GPL-2.0을 따릅니다.
+이 프로젝트는 GPL-2.0을 따릅니다.
