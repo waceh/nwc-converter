@@ -401,10 +401,9 @@ SightReader.prototype.Chord = function (token) {
 		}
 
 		if (shouldAssign) {
+			// Exactly one shift() per note — see the Note handler below for
+			// why this must not keep skipping past multiple markers.
 			var syllable = lyricsToken.shift()
-			while (syllable && /^[-_]$/.test(syllable) && lyricsToken.length) {
-				syllable = lyricsToken.shift()
-			}
 			if (syllable && !/^[-_]$/.test(syllable)) {
 				token.text = syllable
 			}
@@ -513,14 +512,12 @@ SightReader.prototype.Note = function (token) {
 		}
 
 		if (shouldAssign) {
+			// Exactly one shift() per note — a bare "-"/"_" marker means
+			// *this* note is a hold/melisma continuation with no new lyric
+			// text, not "skip ahead to the next real syllable". Consuming
+			// more than one token here would pull every later syllable in
+			// the line onto earlier notes than they belong on.
 			var syllable = lyricsToken.shift()
-
-			// Skip bare continuation markers (hyphens, underscores) that shouldn't
-			// render as lyric text.  They indicate syllable continuation, not content.
-			while (syllable && /^[-_]$/.test(syllable) && lyricsToken.length) {
-				syllable = lyricsToken.shift()
-			}
-			// Don't assign bare markers as lyric text
 			if (syllable && !/^[-_]$/.test(syllable)) {
 				token.text = syllable
 			}

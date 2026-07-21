@@ -400,8 +400,12 @@ function computeBadness(lineWidth, pageWidth, isLastLine) {
 	const ratio = lineWidth / pageWidth
 
 	if (ratio > 1.0) {
-		// Overfull — steep penalty to avoid overflow
-		return (ratio - 1.0) * (ratio - 1.0) * 100
+		// Overfull — must always outweigh even the worst-case underfull penalty
+		// (shortfall→1.0 caps at 5-10 below) so the DP never prefers letting a
+		// system spill past the page/viewport edge over giving it its own
+		// (possibly very short) line. A last-line orphan looks sparse; an
+		// overfull line gets visually cut off — the latter is strictly worse.
+		return (ratio - 1.0) * (ratio - 1.0) * 10000
 	}
 
 	// Underfull — quadratic penalty on the shortfall

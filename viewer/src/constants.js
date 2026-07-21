@@ -29,21 +29,8 @@ function getLayoutMode() {
 	return layoutMode
 }
 
-// Page size for 'page' layout mode (dimensions at 96 DPI).
-const PAGE_SIZES = {
-	letter: { width: 816, height: 1056, label: 'Letter (8.5×11")' },
-	a4:     { width: 794, height: 1123, label: 'A4 (210×297mm)' },
-}
-
-let pageSize = 'letter'
-
-function setPageSize(size) {
-	if (size in PAGE_SIZES) pageSize = size
-}
-
-function getPageSize() {
-	return pageSize
-}
+// Page size for 'page' layout mode (dimensions at 96 DPI). Fixed to A4.
+const PAGE_SIZE = { width: 794, height: 1123, label: 'A4 (210×297mm)' }
 
 // Page orientation — 'portrait' uses the page as-is; 'landscape' swaps width/height.
 let pageOrientation = 'portrait'
@@ -57,11 +44,10 @@ function getPageOrientation() {
 }
 
 function getPageDimensions() {
-	const base = PAGE_SIZES[pageSize]
 	if (pageOrientation === 'landscape') {
-		return { width: base.height, height: base.width, label: base.label }
+		return { width: PAGE_SIZE.height, height: PAGE_SIZE.width, label: PAGE_SIZE.label }
 	}
-	return base
+	return PAGE_SIZE
 }
 
 // Page margins (in score-space px at 96 DPI)
@@ -241,9 +227,6 @@ Object.assign(!isBrowser() ? global : window, {
 	getZoomFitMode,
 	setLayoutMode,
 	getLayoutMode,
-	PAGE_SIZES,
-	setPageSize,
-	getPageSize,
 	setPageOrientation,
 	getPageOrientation,
 	getPageDimensions,
@@ -266,7 +249,6 @@ export {
 	setPageViewMode, getPageViewMode, PAGE_VIEW_MODES,
 	setZoomFitMode, getZoomFitMode,
 	setLayoutMode, getLayoutMode,
-	PAGE_SIZES, setPageSize, getPageSize,
 	setPageOrientation, getPageOrientation,
 	getPageDimensions, getPageMargins,
 	MUSIC_FONTS, setMusicFont, getMusicFont, getMusicFontPath, getMusicTextFamily,
