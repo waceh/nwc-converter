@@ -47,6 +47,27 @@
 				height: 100%;
 			}
 
+			/* Full view — hides everything but the score itself. #score has
+			   flex: 1 (see below) so it expands to fill the space #top/#footer
+			   free up; #fullscreen_exit floats over it since there's no
+			   toolbar left to put a button in. */
+			#fullscreen_exit {
+				display: none;
+				position: fixed;
+				top: 8px;
+				right: 8px;
+				z-index: 200;
+			}
+
+			body.fullscreen-mode #top,
+			body.fullscreen-mode #footer {
+				display: none;
+			}
+
+			body.fullscreen-mode #fullscreen_exit {
+				display: inline-block;
+			}
+
 			/* Toolbar */
 			.toolbar {
 				display: flex;
@@ -388,6 +409,7 @@
 					<!-- Advanced panel toggle -->
 					<div class="toolbar-group">
 						<button id="advanced_toggle" title="음표 간격 등 고급 설정 보기/숨기기">고급</button>
+						<button id="fullscreen_toggle" title="전체보기 (악보만 표시)">전체보기</button>
 					</div>
 				</div>
 			</div>
@@ -448,8 +470,10 @@
 				<div id="invisible_canvas"></div>
 			</div>
 
+			<button id="fullscreen_exit" title="전체보기 종료 (Esc)">축소</button>
+
 			<div id="footer">
-				브라우저에서 직접 처리 — 파일이 서버로 전송되지 않습니다
+				브라우저에서 직접 처리 — 파일이 서버로 전송되지 않습니다 · v1.0.27
 			</div>
 		</div>
 

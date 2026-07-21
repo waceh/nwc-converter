@@ -397,12 +397,24 @@ async function togglePlayPause() {
 	}
 }
 
-playBtn.onclick = () => {
+function handlePlayToggleGesture() {
 	// Must run synchronously, before any await, so iOS Safari still
 	// considers this part of the tap gesture (see unlockAudio() in audio.js).
 	if (!playback.playing) playback.unlockAudio()
 	togglePlayPause()
 }
+
+playBtn.onclick = handlePlayToggleGesture
+
+// Spacebar play/pause — ignored while typing into an input/select so it
+// doesn't hijack normal text/number entry.
+document.addEventListener('keydown', (e) => {
+	if (e.code !== 'Space') return
+	const tag = document.activeElement?.tagName
+	if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+	e.preventDefault()
+	handlePlayToggleGesture()
+})
 
 stopBtn.onclick = () => {
 	playback.stop()
@@ -1107,6 +1119,28 @@ if (advancedToggle && advancedPanel) {
 		advancedToggle.classList.toggle('active', isOpen)
 	}
 }
+
+// ---- Full view (score only, everything else hidden) ----
+
+const fullscreenToggleBtn = document.getElementById('fullscreen_toggle')
+const fullscreenExitBtn = document.getElementById('fullscreen_exit')
+
+function setFullscreenMode(on) {
+	document.body.classList.toggle('fullscreen-mode', on)
+	// #score's available height changed size (toolbar/footer just
+	// appeared/disappeared) — reuse the same relayout the resize handler
+	// above already does, rather than duplicating its logic here.
+	window.dispatchEvent(new Event('resize'))
+}
+
+if (fullscreenToggleBtn) fullscreenToggleBtn.onclick = () => setFullscreenMode(true)
+if (fullscreenExitBtn) fullscreenExitBtn.onclick = () => setFullscreenMode(false)
+
+document.addEventListener('keydown', (e) => {
+	if (e.key === 'Escape' && document.body.classList.contains('fullscreen-mode')) {
+		setFullscreenMode(false)
+	}
+})
 
 // ---- Spacing density slider ----
 
