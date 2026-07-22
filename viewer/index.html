@@ -68,25 +68,26 @@
 				display: inline-block;
 			}
 
-			/* Menu hide — independent toggle from full view (전체보기) above,
-			   but has the same visual effect (hide #top/#footer, float a
-			   restore button over #score). Kept separate so the two features
-			   don't have to share state or a button. */
-			#menu_show_btn {
-				display: none;
-				position: fixed;
-				top: 8px;
-				left: 8px;
-				z-index: 200;
-			}
-
-			body.menu-hidden #top,
-			body.menu-hidden #footer {
+			/* Menu simplify — independent toggle from full view (전체보기)
+			   above. Collapses the toolbar to a single row (메뉴 보기 /
+			   재생 / 정지 / 음량 only) instead of hiding it entirely, so
+			   playback stays reachable while the score gets most of the
+			   freed vertical space. */
+			.menu-simple-only {
 				display: none;
 			}
 
-			body.menu-hidden #menu_show_btn {
+			body.menu-simple .menu-simple-only {
 				display: inline-block;
+			}
+
+			body.menu-simple .menu-extra,
+			body.menu-simple #footer {
+				display: none;
+			}
+
+			body.menu-simple #advanced_panel {
+				display: none !important;
 			}
 
 			/* Toolbar */
@@ -351,7 +352,7 @@
 			<div id="top">
 				<div class="toolbar">
 					<!-- File -->
-					<div class="toolbar-group">
+					<div class="toolbar-group menu-extra">
 						<a href="../converter/index.html" id="logo">NWC Viewer</a>
 						<button id="open">Open</button>
 						<input type="file" id="opener" hidden />
@@ -360,13 +361,15 @@
 
 					<!-- Playback -->
 					<div class="toolbar-group">
+						<button id="menu_full_toggle" class="menu-simple-only" title="전체 메뉴 보기">메뉴 보기</button>
 						<button id="play" title="재생 / 일시정지">재생</button>
 						<button id="stop" title="정지">정지</button>
-						<span id="playback_time" class="time-display">0:00 / 0:00</span>
+						<span id="playback_time" class="time-display menu-extra">0:00 / 0:00</span>
 						<input type="range" id="progress_bar"
+							class="menu-extra"
 							min="0" max="1" step="0.001" value="0"
 							style="width: 120px;" />
-						<label class="speed-control" title="재생 속도">
+						<label class="speed-control menu-extra" title="재생 속도">
 							<input type="range" id="speed_slider"
 								min="0.1" max="3" step="0.05" value="1"
 								style="width: 70px;" />
@@ -380,14 +383,14 @@
 								style="width: 70px;" />
 							<span id="volume_label" style="min-width: 32px; text-align: center; color: var(--text-dim);">8%</span>
 						</label>
-						<select id="solo_staff" title="특정 파트만 재생">
+						<select id="solo_staff" class="menu-extra" title="특정 파트만 재생">
 							<option value="all">전체 파트</option>
 						</select>
-						<button id="autoscroll_toggle" class="active" title="재생 중 자동 스크롤">자동 스크롤</button>
+						<button id="autoscroll_toggle" class="active menu-extra" title="재생 중 자동 스크롤">자동 스크롤</button>
 					</div>
 				</div>
 
-				<div class="toolbar">
+				<div class="toolbar menu-extra">
 					<!-- Layout -->
 					<div class="toolbar-group">
 						<span class="toolbar-label">레이아웃</span>
@@ -431,7 +434,7 @@
 					<div class="toolbar-group">
 						<button id="advanced_toggle" title="음표 간격 등 고급 설정 보기/숨기기">고급</button>
 						<button id="fullscreen_toggle" title="전체보기 (악보만 표시)">전체보기</button>
-						<button id="menu_hide_toggle" title="메뉴 숨기기">메뉴 숨기기</button>
+						<button id="menu_simple_toggle" title="메뉴 간략히 (재생/정지/음량만 표시)">메뉴 간략히</button>
 					</div>
 				</div>
 			</div>
@@ -481,7 +484,6 @@
 			</div>
 
 			<button id="fullscreen_exit" title="전체보기 종료 (Esc)">축소</button>
-			<button id="menu_show_btn" title="메뉴 보기 (Esc)">메뉴 보기</button>
 
 			<div id="footer">
 				브라우저에서 직접 처리 — 파일이 서버로 전송되지 않습니다 · v1.0.28

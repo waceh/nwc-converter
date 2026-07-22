@@ -1046,24 +1046,25 @@ function setFullscreenMode(on) {
 if (fullscreenToggleBtn) fullscreenToggleBtn.onclick = () => setFullscreenMode(true)
 if (fullscreenExitBtn) fullscreenExitBtn.onclick = () => setFullscreenMode(false)
 
-// ---- Menu hide (independent of full view above, same visual effect:
-// hides #top/#footer, floats a restore button over #score) ----
+// ---- Menu simplify (independent of full view above — collapses the
+// toolbar to a single row: 메뉴 보기 / 재생 / 정지 / 음량, rather than
+// hiding it entirely, so playback controls stay reachable) ----
 
-const menuHideToggleBtn = document.getElementById('menu_hide_toggle')
-const menuShowBtn = document.getElementById('menu_show_btn')
+const menuSimpleToggleBtn = document.getElementById('menu_simple_toggle')
+const menuFullToggleBtn = document.getElementById('menu_full_toggle')
 
-function setMenuHidden(on) {
-	document.body.classList.toggle('menu-hidden', on)
+function setMenuSimple(on) {
+	document.body.classList.toggle('menu-simple', on)
 	window.dispatchEvent(new Event('resize'))
 }
 
-if (menuHideToggleBtn) menuHideToggleBtn.onclick = () => setMenuHidden(true)
-if (menuShowBtn) menuShowBtn.onclick = () => setMenuHidden(false)
+if (menuSimpleToggleBtn) menuSimpleToggleBtn.onclick = () => setMenuSimple(true)
+if (menuFullToggleBtn) menuFullToggleBtn.onclick = () => setMenuSimple(false)
 
 document.addEventListener('keydown', (e) => {
 	if (e.key !== 'Escape') return
 	if (document.body.classList.contains('fullscreen-mode')) setFullscreenMode(false)
-	if (document.body.classList.contains('menu-hidden')) setMenuHidden(false)
+	if (document.body.classList.contains('menu-simple')) setMenuSimple(false)
 })
 
 // ---- Spacing density slider ----
